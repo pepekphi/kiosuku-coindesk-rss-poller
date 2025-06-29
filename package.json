@@ -1,0 +1,13 @@
+{
+  "name": "kiosuku-coindesk-rss-poller",
+  "version": "1.0.1",
+  "description": "Poll Coindesk RSS every configurable interval and log latency to publication",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "axios": "^1.4.0",
+    "xml2js": "^0.4.23"
+  }
+}
