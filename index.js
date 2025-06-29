@@ -4,22 +4,20 @@ const { parseStringPromise } = require('xml2js');
 const POLL_INTERVAL_MS = 2000;
 const RSS_URL = 'https://www.coindesk.com/arc/outboundfeeds/rss';
 
-let lastSeenAge = null;   // for detecting when age resets
-let lastSeenGuid = null;  // for dedupe once we do GET
+let lastSeenAge = null;
+let lastSeenGuid = null;
 
 async function pollFeed() {
+  const now = new Date().toISOString();
+
   try {
     // 1) HEAD to fetch only headers
     const head = await axios.head(RSS_URL, { timeout: 3000 });
     const age = parseInt(head.headers.age || '0', 10);
-    console.log(`${new Date().toISOString()} – HEAD age: ${age}`);
 
-    // 2) Decide whether to GET
-    //    - first run (lastSeenAge===null) → GET
-    //    - age < lastSeenAge → new content in CDN → GET
-    if ( lastSeenAge === null || age < lastSeenAge ) {
-      console.log(`${new Date().toISOString()} – fetching full feed (new/first)...`);
-
+    // 2) Decide whether to GET, and log in one line
+    if (lastSeenAge === null || age < lastSeenAge) {
+      console.log(`${now} – HEAD age: ${age} – new or first, fetching feed`);
       const resp = await axios.get(RSS_URL, {
         timeout: 5000,
         validateStatus: s => s === 200
@@ -37,7 +35,8 @@ async function pollFeed() {
           const link     = latest.link[0];
           const pubDateS = latest.pubDate[0];
           const pubDate  = new Date(pubDateS);
-          const latency  = ((Date.now() - pubDate.getTime())/1000).toFixed(1);
+          const latency  = ((Date.now() - pubDate.getTime()) / 1000).toFixed(1);
+
           console.log('→ New article found:');
           console.log(`   Title  : ${title}`);
           console.log(`   Link   : ${link}`);
@@ -46,14 +45,14 @@ async function pollFeed() {
         }
       }
     } else {
-      console.log(`${new Date().toISOString()} – no new feed yet, skipping GET`);
+      console.log(`${now} – HEAD age: ${age} – no new feed yet, skipping GET`);
     }
 
     // 4) Update lastSeenAge
     lastSeenAge = age;
 
   } catch (err) {
-    console.error(`${new Date().toISOString()} – error:`, err.message);
+    console.error(`${now} – error:`, err.message);
   }
 }
 
