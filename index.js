@@ -7,12 +7,16 @@ const POLL_INTERVAL_MS = 2000;
 const RSS_URL = 'https://www.coindesk.com/arc/outboundfeeds/rss';
 
 let lastModified = null;
+let savedEtag = null;
 
 async function pollFeed() {
   try {
     const headers = {};
     if (lastModified) {
       headers['If-Modified-Since'] = lastModified;
+    }
+    if (savedEtag) {
+      headers['If-None-Match'] = savedEtag;
     }
 
     const resp = await axios.get(RSS_URL, {
@@ -21,6 +25,9 @@ async function pollFeed() {
       validateStatus: s => s === 200 || s === 304
     });
 
+    // **Log all response headers so you can inspect ETag / Last-Modified / cache settings**
+    console.log('Response headers:', resp.headers);
+
     if (resp.status === 304) {
       console.log(`${new Date().toISOString()} – no change (304)`);
       return;
@@ -28,8 +35,12 @@ async function pollFeed() {
 
     console.log(`${new Date().toISOString()} – feed updated (200)`);
 
+    // Capture Last-Modified and ETag if present
     if (resp.headers['last-modified']) {
       lastModified = resp.headers['last-modified'];
+    }
+    if (resp.headers.etag) {
+      savedEtag = resp.headers.etag;
     }
 
     const doc = await parseStringPromise(resp.data);
