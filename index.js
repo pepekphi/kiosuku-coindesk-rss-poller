@@ -1,8 +1,10 @@
 const axios = require('axios');
 const { parseStringPromise } = require('xml2js');
 
+// Poll interval in milliseconds — adjust this value as needed
+const POLL_INTERVAL_MS = 2000;
+
 const RSS_URL = 'https://www.coindesk.com/arc/outboundfeeds/rss';
-const POLL_INTERVAL = parseInt(process.env.POLL_INTERVAL_MS, 10) || 2000;
 
 let lastModified = null;
 
@@ -24,19 +26,16 @@ async function pollFeed() {
       return;
     }
 
-    // Got new feed data (200)
     console.log(`${new Date().toISOString()} – feed updated (200)`);
 
-    // Update our last‐modified marker
     if (resp.headers['last-modified']) {
       lastModified = resp.headers['last-modified'];
     }
 
-    // Parse only the latest item
     const doc = await parseStringPromise(resp.data);
     const items = doc.rss.channel[0].item;
     if (items && items.length) {
-      const latest = items[0];
+      const latest   = items[0];
       const title    = latest.title[0];
       const link     = latest.link[0];
       const pubDateS = latest.pubDate[0];
@@ -45,8 +44,8 @@ async function pollFeed() {
       const latencyS = ((now - pubDate) / 1000).toFixed(1);
 
       console.log('Latest article:');
-      console.log(`  Title : ${title}`);
-      console.log(`  Link  : ${link}`);
+      console.log(`  Title  : ${title}`);
+      console.log(`  Link   : ${link}`);
       console.log(`  PubDate: ${pubDateS}`);
       console.log(`  Latency: ${latencyS} s`);
     }
@@ -60,5 +59,5 @@ async function pollFeed() {
   }
 }
 
-console.log(`Starting poller: interval = ${POLL_INTERVAL} ms`);
-setInterval(pollFeed, POLL_INTERVAL);
+console.log(`Starting poller: interval = ${POLL_INTERVAL_MS} ms`);
+setInterval(pollFeed, POLL_INTERVAL_MS);
