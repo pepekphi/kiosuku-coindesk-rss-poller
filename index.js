@@ -46,7 +46,7 @@ async function pollFeed() {
         }
       }
     } else {
-      console.log(`${now} – HEAD age: ${age} – no new feed yet, skipping GET`);
+      //console.log(`${now} – HEAD age: ${age} – no new feed yet, skipping GET`);
     }
 
     // 4) Update lastSeenAge for next tick
