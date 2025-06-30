@@ -1,7 +1,7 @@
 const axios = require('axios');
 const { parseStringPromise } = require('xml2js');
 
-const POLL_INTERVAL_MS = 2000;
+const POLL_INTERVAL_MS = 3500;
 const RSS_URL = 'https://www.coindesk.com/arc/outboundfeeds/rss';
 
 let lastSeenAge = null;
@@ -18,7 +18,7 @@ async function pollFeed() {
 
     // 2) Decide whether to GET, and log in one line
     if (lastSeenAge === null || age < lastSeenAge) {
-      console.log(`${now} – HEAD age: ${age} – new or first, fetching feed`);
+      //console.log(`${now} – HEAD age: ${age} – new or first, fetching feed`);
       const resp = await axios.get(RSS_URL, {
         timeout: 5000,
         validateStatus: s => s === 200
@@ -37,12 +37,7 @@ async function pollFeed() {
           const pubDateS = latest.pubDate[0];
           const pubDate  = new Date(pubDateS);
           const latency  = ((Date.now() - pubDate.getTime()) / 1000).toFixed(1);
-
-          console.log('→ New article found:');
-          console.log(`   Title  : ${title}`);
-          console.log(`   Link   : ${link}`);
-          console.log(`   PubDate: ${pubDateS}`);
-          console.log(`   Latency: ${latency} s`);
+          console.log(`→ New article found | Title: ${title} | Link: ${link} | PubDate: ${pubDateS} | Latency: ${latency} s`);
         }
       }
     } else {
