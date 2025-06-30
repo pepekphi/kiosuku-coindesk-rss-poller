@@ -19,9 +19,13 @@ async function pollFeed() {
     // 2) Decide whether to GET, and log in one line
     if (lastSeenAge === null || age < lastSeenAge) {
       //console.log(`${now} – HEAD age: ${age} – new or first, fetching feed`);
-      const resp = await axios.get(RSS_URL, {
+      const resp = await axios.get(`${RSS_URL}?_=${Date.now()}`, {
         timeout: 5000,
-        validateStatus: s => s === 200
+        validateStatus: s => s === 200,
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
       });
 
       // 3) Parse & dedupe by <guid>
